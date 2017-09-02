@@ -51,7 +51,7 @@ namespace Voxel2GCodeCore
         /// Constructor of a printer.
         /// </summary>
         public V2GState() {
-           ///
+            ///
         }
 
         /// <summary>
@@ -114,8 +114,8 @@ namespace Voxel2GCodeCore
             this.E = 0;
             this.A = 0;
             s.Append("\nT" + (this.Head));
-            s.Append("\nG92 E0.0000");
-            if (this.Head == 3) s.Append("\nG92 A0.0000"); // e.g. Dual PRO right filament
+            s.Append("\nG92 E0.0");
+            if (this.Head == 3) s.Append("\nG92 A0.0"); // e.g. Dual PRO right filament
         }
 
         /// <summary>
@@ -148,10 +148,18 @@ namespace Voxel2GCodeCore
         /// Set the position of the printer's extruder head.
         /// </summary>
         /// <param name="p">A PrintPoint.</param>
-        public void SetPosition(V2GPrintPosition p)
+        public void SetPosition(V2GPrintPosition p, StringBuilder s = null)
         {
-            p.Z += this.settings.ZOffset;
-            Position = p;
+            if ( s != null && Math.Abs(this.Position.Z - p.Z + this.settings.ZOffset) > 0.01 )
+            {
+                if (this.settings.IsVerbose)
+                {
+                    s.Append("\n(Z Changed)");
+                    s.Append(" (from " + this.Position.Z + " to " + p.Z +")");
+                }
+                this.ResetHead(s);
+            }
+            this.Position = new V2GPrintPosition(p.X, p.Y, p.Z + this.settings.ZOffset);
         }
 
         /// <summary>
@@ -161,8 +169,7 @@ namespace Voxel2GCodeCore
         /// <returns></returns>
         public V2GPrintPosition PrintPointOnBase(V2GPrintPosition p)
         {
-            p.Z += this.settings.ZOffset;
-            return p;
+            return new V2GPrintPosition(p.X, p.Y, p.Z + this.settings.ZOffset);
         }
     }
 }
